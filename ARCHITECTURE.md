@@ -187,6 +187,12 @@ Propres à Soest :
   chemins membres avant la seconde.
 - `python -c "…"` avec guillemets imbriqués et heredocs longs dans le shell Git Bash de
   Windows : préférer un fichier de script (voir la mémoire « pièges Write / heredoc »).
+- **Service worker : deux pièges de mise à jour** (2026-11-01). Le navigateur ne réinstalle un
+  worker que si `sw.js` a changé d'un octet : `manifeste.py` y réécrit `const BUILD`. Et un
+  worker en attente (bandeau non cliqué) peut être arrêté puis relancé pour l'activation :
+  sa variable `APP_CACHE` retombe alors à `initial` et le ménage d'`activate` effacerait le
+  cache tout juste rempli — d'où `await cacheActuel()` avant de supprimer les anciens caches
+  (défaut trouvé sur rhin-superieur, corrigé dans les deux applications).
 - Les `historic=memorial` d'OSM sont aux trois quarts des **Stolpersteine** (plaques
   nominatives au sol) : les écarter (`memorial=stolperstein|grave|plaque`), sinon la couche
   « monuments » n'est qu'une liste de noms de personnes.

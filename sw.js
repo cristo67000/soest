@@ -13,7 +13,7 @@ const PREFIXE = 'soest-app-';
    réinstalle un service worker que si son script a changé d'un octet. Sans
    cette ligne, une nouvelle version (nouveau precache.json) resterait
    invisible des appareils déjà installés. */
-const BUILD = '2026-11-01-1702';
+const BUILD = '2026-11-01-1708';
 let APP_CACHE = PREFIXE + 'initial';
 const PAQUETS = /\/data\/(fond|contexte|topo|relief|adresses)\//;
 
@@ -42,6 +42,10 @@ self.addEventListener('message', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
+    /* Le worker a pu être arrêté entre install et activate (inactif tant que le
+       bandeau attendait un clic) : APP_CACHE serait retombé à 'initial' et le
+       ménage ci-dessous effacerait aussi le cache qui vient d'être rempli. */
+    await cacheActuel();
     const cles = await caches.keys();
     await Promise.all(cles.filter((k) => k.startsWith(PREFIXE) && k !== APP_CACHE).map((k) => caches.delete(k)));
     await self.clients.claim();
