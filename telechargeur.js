@@ -29,6 +29,13 @@ function ecrireTexte(dossier, nom, texte) {
   });
 }
 
+function lireJson(dossier, nom) {
+  return dossier.getFileHandle(nom).then(function (fh) { return fh.getFile(); })
+    .then(function (f) { return f.text(); })
+    .then(function (t) { try { return JSON.parse(t); } catch (e) { return null; } })
+    .catch(function () { return null; });
+}
+
 async function installer(m) {
   controleur = new AbortController();
   var signal = controleur.signal;
@@ -36,7 +43,24 @@ async function installer(m) {
     var racine = await navigator.storage.getDirectory();
     var paquets = await racine.getDirectoryHandle("paquets", { create: true });
     var dossier = await paquets.getDirectoryHandle(m.cle, { create: true });
+    /* Reprise ou nouvelle version ? Un morceau déjà présent n'est réutilisable
+       que s'il appartient à la version en cours de téléchargement : on le sait
+       par le marqueur « en-cours.json » (écrit avant le premier octet, effacé à
+       la fin) ou par le manifeste d'une installation complète. Sinon — mise à
+       jour vers une autre version, dont les morceaux ont souvent exactement la
+       même taille — tout repart de zéro : sans cela, l'ancienne archive restait
+       en place sous un manifeste neuf (piège rencontré le 2026-11-01). */
+    var cible = m.manifeste.sha256 || "";
+    var enCours = await lireJson(dossier, "en-cours.json");
+    var ancien = await lireJson(dossier, "manifeste.json");
+    var memeVersion = !!cible && ((enCours && enCours.sha256 === cible) || (!enCours && ancien && ancien.sha256 === cible));
     try { await dossier.removeEntry("manifeste.json"); } catch (e) { /* absent */ }
+    if (!memeVersion) {
+      for await (var ancienNom of dossier.keys()) {
+        try { await dossier.removeEntry(ancienNom); } catch (e) { /* tant pis */ }
+      }
+    }
+    await ecrireTexte(dossier, "en-cours.json", JSON.stringify({ sha256: cible, debut: new Date().toISOString() }));
 
     var total = 0, recu = 0, dernierEnvoi = 0;
     m.morceaux.forEach(function (x) { total += x.taille; });
@@ -52,7 +76,7 @@ async function installer(m) {
     var attendus = {};
     m.morceaux.forEach(function (x) { attendus[x.nom] = true; });
     for await (var entree of dossier.keys()) {
-      if (!attendus[entree] && entree !== "manifeste.json") {
+      if (!attendus[entree] && entree !== "manifeste.json" && entree !== "en-cours.json") {
         try { await dossier.removeEntry(entree); } catch (e) { /* tant pis */ }
       }
     }
@@ -96,6 +120,7 @@ async function installer(m) {
     }
 
     await ecrireTexte(dossier, "manifeste.json", JSON.stringify(m.manifeste));
+    try { await dossier.removeEntry("en-cours.json"); } catch (e) { /* déjà absent */ }
     if (m.versionTexte) {
       try { await ecrireTexte(paquets, "version.json", m.versionTexte); } catch (e) { /* facultatif */ }
     }

@@ -17,7 +17,7 @@ et le calcul d'itinéraires (Valhalla/OSRM publics).
 |---|---|---|---|
 | `fond` | Fond vectoriel Protomaps (OpenStreetMap) zoom 0 → 15 sur l'emprise | 10 Mo, 1 060 tuiles | `build/tuiles.py` (`pmtiles extract --region`) |
 | `contexte` | Europe zoom 0 → 6, pour le dézoom | 6,2 Mo | idem |
-| `topo` | Carte topographique officielle DTK (Geobasis NRW), tuiles **512 px** WebP q90, adressage zoom 5 → 15 (équivalent 256 px : 6 → 16) | 58,8 Mo, 1 055 tuiles, 2 morceaux | `build/topo.py` (WMS `wms_nw_dtk`, couche `nw_dtk_col`) |
+| `topo` | Carte topographique officielle DTK (Geobasis NRW), tuiles **512 px** WebP q90, adressage zoom 5 → 15 sur l'emprise (équivalent 256 px : 6 → 16) **+ niveau 16 sur la commune de Soest** (`build/ville.geojson`, net jusqu'au zoom 17) | 80 Mo, 1 734 tuiles, 2 morceaux | `build/topo.py` (WMS `wms_nw_dtk`, couche `nw_dtk_col`) |
 | `relief` | Altitudes Terrarium (EU-DEM 25 m) zoom 0 → 13, WebP sans perte, précision 25 cm | 2,4 Mo, 102 tuiles | `build/relief.py` |
 | `adresses` | Index OSM : 36 478 adresses, 2 303 rues, 20 communes | 0,26 Mo gzip | `build/adresses.py` (pyosmium sur l'extrait Geofabrik `arnsberg-regbez`) |
 | — | `data/transports.json` : 662 arrêts (7 gares/haltes, 655 arrêts de bus), 226 relations de lignes (16 train, 210 bus) avec tracés | 1,6 Mo, précaché | `build/transports.py` (pyosmium, deux passes) |
@@ -42,6 +42,15 @@ Mesuré sur échantillons : une tuile 512 px réencodée WebP q90 pèse 83 Ko co
 en 256 px (−35 %), d'où l'adressage « @2x » (`tileSize: 512`, une tuile du niveau z couvre
 les quatre tuiles 256 px du niveau z+1). Les PNG WMS sont gardés dans `build/cache/dtk/`.
 
+Le niveau 16 (0,75 m/pixel, ~680 tuiles) n'est construit que sur la commune de Soest — le
+couvrir sur les 400 km² aurait coûté ~160 Mo de plus. Hors commune, `carte.js` ne laisse
+pas de trou : quand la tuile demandée manque, le protocole remonte d'un niveau (deux au
+plus), découpe le quart correspondant de la tuile parente sur un `OffscreenCanvas` et le
+renvoie agrandi à 512 px (`tuileTopoDeSecours`). MapLibre ne retombe pas sûrement sur la
+tuile parente pour un raster en erreur, d'où ce secours maison. La couche ne s'estompe vers
+le fond vectoriel qu'entre les zooms 19 et 20 (l'utilisateur préfère la topographique
+agrandie au vectoriel).
+
 ## 2. Lecture des données : `stockage.js`
 
 Une archive PMTiles se lit par plages d'octets. `Stockage.lire(cle, debut, longueur)`
@@ -49,7 +58,7 @@ répartit la plage sur les morceaux et lit :
 
 - **hors ligne** : fichiers de l'OPFS (Origin Private File System), écrits par le worker
   `telechargeur.js` (`createSyncAccessHandle`, reprise au byte près après interruption,
-  manifeste écrit en dernier) et lus par `File.slice()` ;
+  manifeste écrit en dernier, marqueur `en-cours.json` pendant le téléchargement) et lus par `File.slice()` ;
 - **sinon** : requêtes HTTP `Range` sur les morceaux publiés (GitHub Pages les sert).
 
 Le Cache Storage est évité pour les gros fichiers (il ne sert pas une plage sans recharger
@@ -193,6 +202,14 @@ Propres à Soest :
   sa variable `APP_CACHE` retombe alors à `initial` et le ménage d'`activate` effacerait le
   cache tout juste rempli — d'où `await cacheActuel()` avant de supprimer les anciens caches
   (défaut trouvé sur rhin-superieur, corrigé dans les deux applications).
+- **Mise à jour d'un paquet : la reprise ne doit pas réutiliser les morceaux d'une autre
+  version** (2026-11-01). `telechargeur.js` reprenait tout morceau déjà présent de la bonne
+  taille ; or les morceaux de 48 Mo d'une nouvelle version ont exactement la même taille que
+  les anciens : la carte topographique « mise à jour » gardait son ancien premier morceau sous
+  un manifeste neuf (en-tête PMTiles à 1 055 tuiles au lieu de 1 734). Désormais un marqueur
+  `en-cours.json` (sha256 visé) est écrit avant le premier octet : un morceau n'est réutilisé
+  que si le marqueur, ou le manifeste complet, porte le même sha256 ; sinon le dossier est vidé.
+  Vérifié en remplaçant le paquet Adresses par du bruit sous un faux sha256.
 - Les `historic=memorial` d'OSM sont aux trois quarts des **Stolpersteine** (plaques
   nominatives au sol) : les écarter (`memorial=stolperstein|grave|plaque`), sinon la couche
   « monuments » n'est qu'une liste de noms de personnes.
@@ -204,6 +221,6 @@ Propres à Soest :
 - **Lisibilité à fort zoom (2026-11-01)** : plus aucune étiquette en couleur sur la carte —
   ni pour les lieux, ni pour les arrêts de bus (seules les gares gardent leur nom sous le
   zoom 15), ni pour les commerces du fond Protomaps (`text-field` vidé, pictogrammes
-  conservés) ; le nom apparaît dans la fiche. Au-delà du zoom 17, la carte topographique
-  (dernière tuile à 1,5 m/pixel) deviendrait floue en s'agrandissant : `raster-opacity`
-  passe de 1 à 0 entre 17 et 18 et le fond vectoriel, net à tout zoom, prend le relais.
+  conservés) ; le nom apparaît dans la fiche. Au-delà du dernier niveau de tuiles, la carte
+  topographique est agrandie (niveau 16 sur la commune, 15 ailleurs, secours par découpe de
+  la tuile parente) ; `raster-opacity` ne passe de 1 à 0 qu'entre les zooms 19 et 20.

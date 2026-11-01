@@ -3,7 +3,7 @@
 Application web installable (PWA) de navigation et de géolocalisation couvrant **Soest
 (Westphalie, Rhénanie-du-Nord-Westphalie) et ses environs dans un rayon de 10 km** —
 Bad Sassendorf, Welver, Lippetal (sud), Möhnesee, Ense, Werl… — utilisable **sans réseau**
-une fois les paquets téléchargés (≈ 78 Mo en tout).
+une fois les paquets téléchargés (≈ 99 Mo en tout).
 
 **En ligne : <https://cristo67000.github.io/soest/>** — à ouvrir dans Chrome (Android) ou
 Safari (iPhone), puis « Ajouter à l'écran d'accueil » et bouton « Hors ligne » pour
@@ -11,7 +11,8 @@ télécharger les cartes.
 
 - **Carte topographique officielle du Land** (DTK10/25/50, Geobasis NRW, licence
   Datenlizenz Deutschland – Zero 2.0) : nette jusqu'au 1:10 000 — bâtiments, chemins,
-  courbes de niveau, lieux-dits, toponymes. Bouton « Topo » / « OSM » pour basculer.
+  courbes de niveau, lieux-dits, toponymes ; nette jusqu'au zoom 17 sur la commune de Soest.
+  Bouton « Topo » / « OSM » pour basculer.
 - **Fond OpenStreetMap très détaillé** (Protomaps, zoom 15) : rues et chemins, bâtiments,
   commerces et services, rivières, forêts, villages ; noms locaux ou en français,
   bâtiments 3D. Contexte Europe pour le dézoom.
@@ -41,7 +42,7 @@ Tout reste sur l'appareil : aucun compte, aucune télémétrie.
 | Paquet | Poids | Contenu |
 |---|---|---|
 | Fond de carte | 16 Mo | tuiles vectorielles OSM zoom 0 → 15 (10 Mo) + Europe dézoomée (6 Mo) |
-| Carte topographique | 59 Mo | DTK officielle, tuiles 512 px WebP, zoom 6 → 16 |
+| Carte topographique | 80 Mo | DTK officielle, tuiles 512 px WebP, zoom 6 → 16 partout, 17 sur la commune de Soest |
 | Relief | 2,4 Mo | altitudes Terrarium (EU-DEM 25 m) zoom 0 → 13 |
 | Adresses | 0,3 Mo | 36 478 adresses, 2 303 rues, 148 localités |
 

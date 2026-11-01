@@ -92,8 +92,12 @@ var Carte = (function () {
 
   Stockage.surChangement(function (cle) {
     delete archives[cle];
-    // les tuiles déjà affichées restent ; les suivantes viendront du bon endroit
-    if (carte && carte.getSource("fond")) carte.getSource("fond").setTiles(["soest://fond/{z}/{x}/{y}"]);
+    if (!carte) return;
+    // setTiles vide le cache de tuiles de la source : les suivantes viennent
+    // du bon endroit (OPFS après installation ou mise à jour, réseau après suppression)
+    if ((cle === "fond" || cle === "contexte") && carte.getSource("fond")) carte.getSource("fond").setTiles(["soest://fond/{z}/{x}/{y}"]);
+    if (cle === "topo" && carte.getSource("topo")) carte.getSource("topo").setTiles(["soest://topo/{z}/{x}/{y}"]);
+    if (cle === "relief" && carte.getSource("relief")) carte.getSource("relief").setTiles(["soest://relief/{z}/{x}/{y}"]);
   });
 
   /* soest://<paquet>/{z}/{x}/{y} : le fond de carte sert les zooms 7 à 15,
@@ -116,6 +120,12 @@ var Carte = (function () {
         return archive("fond").getZxy(z, x, y, signal);
       });
     }
+    if (cle === "topo" && z > 10) {
+      /* Le niveau 16 n'existe que sur la commune de Soest : ailleurs, on
+         agrandit soi-même le quart de la tuile parente plutôt que de laisser
+         un trou (MapLibre ne retombe pas sûrement sur le parent). */
+      promesse = promesse.then(function (r) { return r || tuileTopoDeSecours(z, x, y, signal); });
+    }
     return promesse.then(function (r) {
       // Une tuile raster absente doit être une erreur : avec des octets vides,
       // MapLibre fabrique une image 1 × 1 (et pour le relief, l'ombrage voisin
@@ -124,6 +134,35 @@ var Carte = (function () {
       return { data: r ? r.data : new Uint8Array() };
     });
   });
+
+  /* Tuile topo absente : remonte d'un niveau (deux au plus), découpe le quart
+     correspondant de la tuile parente et l'agrandit à 512 px. */
+  function tuileTopoDeSecours(z, x, y, signal) {
+    if (typeof OffscreenCanvas === "undefined" || typeof createImageBitmap === "undefined") return Promise.resolve(null);
+    function essayer(zp, xp, yp, ecart) {
+      return archive("topo").getZxy(zp, xp, yp, signal).then(function (r) {
+        if (r && r.data && r.data.byteLength) return decouperQuart(r.data, ecart, x, y);
+        if (ecart >= 2 || zp <= 10) return null;
+        return essayer(zp - 1, xp >> 1, yp >> 1, ecart + 1);
+      });
+    }
+    return essayer(z - 1, x >> 1, y >> 1, 1);
+  }
+  function decouperQuart(octets, ecart, x, y) {
+    var facteur = 1 << ecart, taille = 512;
+    return createImageBitmap(new Blob([octets])).then(function (bmp) {
+      var part = bmp.width / facteur;
+      var sx = (x % facteur) * part, sy = (y % facteur) * part;
+      var c = new OffscreenCanvas(taille, taille);
+      var g = c.getContext("2d");
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = "high";
+      g.drawImage(bmp, sx, sy, part, part, 0, 0, taille, taille);
+      bmp.close && bmp.close();
+      return c.convertToBlob({ type: "image/webp", quality: 0.85 }).then(function (b) { return b.arrayBuffer(); })
+        .then(function (ab) { return { data: new Uint8Array(ab) }; });
+    }).catch(function () { return null; });
+  }
 
   // ---------- style ----------
   function construireStyle() {
@@ -154,12 +193,13 @@ var Carte = (function () {
       /* Carte topographique officielle du Land (paquet « topo », tuiles 512 px)
          posée au-dessus du fond vectoriel : opaque, elle le recouvre dans
          l'emprise ; ailleurs et sous le zoom 10, OpenStreetMap reste visible.
-         Au-delà du zoom 17, la dernière tuile (1,5 m/pixel) serait agrandie et
-         floue : la couche s'estompe entre 17 et 18 pour laisser le fond
-         vectoriel, net à tout zoom, prendre le relais (demande du 2026-11-01). */
-      var peintureTopo = { "raster-fade-duration": 150, "raster-opacity": ["interpolate", ["linear"], ["zoom"], 17, 1, 18, 0] };
+         Nette jusqu'au zoom 17 sur la commune de Soest (niveau 16), 16 ailleurs ;
+         au-delà, la tuile est agrandie. L'utilisateur préfère la garder plutôt
+         que de passer au fond vectoriel (2026-11-01) : elle ne s'estompe qu'aux
+         deux derniers zooms, entre 19 et 20. */
+      var peintureTopo = { "raster-fade-duration": 150, "raster-opacity": ["interpolate", ["linear"], ["zoom"], 19, 1, 20, 0] };
       if (themeSombre()) Object.assign(peintureTopo, { "raster-brightness-max": 0.82, "raster-saturation": -0.2, "raster-contrast": 0.05 });
-      couches.push({ id: "topo", type: "raster", source: "topo", minzoom: 10, maxzoom: 18.01, paint: peintureTopo });
+      couches.push({ id: "topo", type: "raster", source: "topo", minzoom: 10, paint: peintureTopo });
     }
 
     couches.push({
@@ -206,7 +246,7 @@ var Carte = (function () {
     };
     if (reglages.fond === "topo") {
       sources.topo = {
-        type: "raster", tiles: ["soest://topo/{z}/{x}/{y}"], tileSize: 512, minzoom: 5, maxzoom: 15,
+        type: "raster", tiles: ["soest://topo/{z}/{x}/{y}"], tileSize: 512, minzoom: 5, maxzoom: 16,
         bounds: emprise ? emprise.bbox : undefined,
         attribution: "Carte topographique © <a href=\"https://www.bezreg-koeln.nrw.de/geobasis-nrw\">Geobasis NRW</a> (dl-de/zero-2.0)"
       };

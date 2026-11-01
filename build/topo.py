@@ -11,8 +11,11 @@ plus compact que quatre tuiles de 256 px — puis réencodage WebP q90 (85 Ko PN
 ~30 Ko par 256 px équivalent). Assemblé en MBTiles puis PMTiles, découpé en
 morceaux de 48 Mo comme les autres paquets.
 
-Zooms : adressage 5 → 15 (équivalent 256 px : 6 → 16). En dessous, l'application
-montre le fond OpenStreetMap ; au-dessus, MapLibre agrandit la dernière tuile.
+Zooms : adressage 5 → 15 (équivalent 256 px : 6 → 16) sur toute l'emprise, plus le
+niveau 16 (net jusqu'au zoom 17) sur la seule commune de Soest (build/ville.geojson,
+limite Nominatim, ~680 tuiles, ~35 Mo) — demande de l'utilisateur du 2026-11-01. En
+dessous du zoom 10, l'application montre le fond OpenStreetMap ; hors commune au-delà
+du niveau 15, elle agrandit elle-même la tuile parente (carte.js).
 
 Usage : python build/topo.py
 """
@@ -38,7 +41,9 @@ UA = "soest-build/1.0 (carte hors ligne ; contact : cristo67000 sur GitHub)"
 WMS = "https://www.wms.nrw.de/geobasis/wms_nw_dtk"
 COUCHE = "nw_dtk_col"
 TAILLE = 512
-ZOOM_MIN, ZOOM_MAX = 5, 15     # adressage des tuiles 512 px
+ZOOM_MIN, ZOOM_MAX = 5, 15     # adressage des tuiles 512 px, toute l'emprise
+ZOOM_VILLE = 16                # un niveau de plus sur la commune (build/ville.geojson)
+VILLE = os.path.join(RACINE, "build", "ville.geojson")
 QUALITE = 90
 TAILLE_MORCEAU = 48_000_000
 R = 6378137 * math.pi          # demi-périmètre en Web Mercator
@@ -59,7 +64,8 @@ def tuiles_de_l_emprise():
     ys = [p[1] for p in gj["geometry"]["coordinates"][0]]
     lon0, lat0, lon1, lat1 = min(xs), min(ys), max(xs), max(ys)
     tuiles = []
-    for z in range(ZOOM_MIN, ZOOM_MAX + 1):
+
+    def grille(z, a, b, c, d):
         n = 2 ** z
 
         def tx(lon):
@@ -68,9 +74,28 @@ def tuiles_de_l_emprise():
         def ty(lat):
             return int((1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * n)
 
-        for x in range(max(0, tx(lon0)), min(n - 1, tx(lon1)) + 1):
-            for y in range(max(0, ty(lat1)), min(n - 1, ty(lat0)) + 1):
-                tuiles.append((z, x, y))
+        for x in range(max(0, tx(a)), min(n - 1, tx(c)) + 1):
+            for y in range(max(0, ty(d)), min(n - 1, ty(b)) + 1):
+                yield (z, x, y)
+
+    for z in range(ZOOM_MIN, ZOOM_MAX + 1):
+        tuiles.extend(grille(z, lon0, lat0, lon1, lat1))
+    # niveau supplémentaire sur la commune : tuiles dont l'emprise touche le contour
+    from shapely.geometry import shape, box
+    from shapely.prepared import prep
+    ville = prep(shape(json.load(open(VILLE, encoding="utf-8"))))
+    vb = shape(json.load(open(VILLE, encoding="utf-8"))).bounds
+    n_ville = 0
+    for (z, x, y) in grille(ZOOM_VILLE, *vb):
+        n = 2 ** z
+        a = x / n * 360 - 180
+        c = (x + 1) / n * 360 - 180
+        b = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / n))))
+        d = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
+        if ville.intersects(box(a, b, c, d)):
+            tuiles.append((z, x, y))
+            n_ville += 1
+    log("  dont %d tuiles du niveau %d sur la commune" % (n_ville, ZOOM_VILLE))
     return tuiles, (lon0, lat0, lon1, lat1)
 
 
@@ -135,7 +160,7 @@ def main():
                 log("  %s/%s tuiles, %.1f Mo, %.0f s" % (format(faits, ","), format(len(tuiles), ","), total / 1e6, time.time() - t0))
     meta = {"name": "Carte topographique NRW (DTK)", "format": "webp", "type": "baselayer", "version": "1",
             "description": "Digitale Topographische Karte (DTK10/25/50) du Land de Rhénanie-du-Nord-Westphalie, Geobasis NRW, tuiles 512 px",
-            "minzoom": str(ZOOM_MIN), "maxzoom": str(ZOOM_MAX), "bounds": ",".join("%.4f" % v for v in bbox),
+            "minzoom": str(ZOOM_MIN), "maxzoom": str(ZOOM_VILLE), "bounds": ",".join("%.4f" % v for v in bbox),
             "attribution": "© Geobasis NRW (dl-de/zero-2.0)", "tilesize": str(TAILLE)}
     db.executemany("INSERT INTO metadata VALUES (?,?)", meta.items())
     db.commit()
@@ -173,7 +198,7 @@ def main():
     version["paquets"]["topo"] = {
         "nom": "Carte topographique officielle (DTK)", "type": "raster", "format": "webp", "taille_tuile": TAILLE,
         "taille": taille, "taille_morceau": TAILLE_MORCEAU, "morceaux": morceaux, "sha256": h.hexdigest(),
-        "zoom_min": ZOOM_MIN, "zoom_max": ZOOM_MAX, "tuiles": faits, "osm": time.strftime("%Y-%m-%d"),
+        "zoom_min": ZOOM_MIN, "zoom_max": ZOOM_VILLE, "zoom_max_partout": ZOOM_MAX, "tuiles": faits, "osm": time.strftime("%Y-%m-%d"),
         "source": "Geobasis NRW, DTK (dl-de/zero-2.0)"
     }
     json.dump(version, open(chemin_version, "w", encoding="utf-8"), ensure_ascii=False, indent=1)

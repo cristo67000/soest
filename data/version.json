@@ -50,16 +50,17 @@
    "type": "raster",
    "format": "webp",
    "taille_tuile": 512,
-   "taille": 58826685,
+   "taille": 80234374,
    "taille_morceau": 48000000,
    "morceaux": [
     "data/topo/topo.000",
     "data/topo/topo.001"
    ],
-   "sha256": "2f94cbe58ebed1106effc4c04077c3527128e4faf2db581b197b4b644df7d9a2",
+   "sha256": "c78dc9963be637ca14da627d4762996640f9d26f45b0cb724ccaf28bdb7a1964",
    "zoom_min": 5,
-   "zoom_max": 15,
-   "tuiles": 1055,
+   "zoom_max": 16,
+   "zoom_max_partout": 15,
+   "tuiles": 1734,
    "osm": "2026-11-01",
    "source": "Geobasis NRW, DTK (dl-de/zero-2.0)"
   },
@@ -78,5 +79,5 @@
    "source": "OpenStreetMap"
   }
  },
- "build": "2026-11-01 17:08"
+ "build": "2026-11-01 17:22"
 }
