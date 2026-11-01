@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://photon.komoot.io https://valhalla1.openstreetmap.de https://router.project-osrm.org; worker-src 'self' blob:; child-src 'self' blob:; font-src 'self'; manifest-src 'self'">
+  <meta name="theme-color" content="#2e7d4f">
+  <meta name="description" content="Carte de Soest (Westphalie) et de ses environs dans un rayon de 10 km, utilisable hors ligne : carte topographique officielle du Land, OpenStreetMap, relief, adresses, transports, lieux personnels, géolocalisation.">
+  <title>Soest</title>
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Soest">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Soest">
+  <meta property="og:title" content="Soest — carte hors ligne de la ville et de ses environs">
+  <meta property="og:description" content="Soest et ses environs (±10 km) sur le téléphone, sans réseau : carte topographique officielle du Land, OpenStreetMap, relief, adresses, gare et arrêts de bus, vos lieux et coordonnées GPS.">
+  <meta property="og:url" content="https://cristo67000.github.io/soest/">
+  <meta property="og:image" content="https://cristo67000.github.io/soest/icons/apercu-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:locale:alternate" content="de_DE">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-512.png">
+  <link rel="stylesheet" href="lib/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="carte"></div>
+
+  <header id="barre">
+    <div id="colonne-gauche">
+      <div id="recherche">
+        <input id="champ-recherche" type="search" placeholder="Adresse, lieu, coordonnées…"
+               autocomplete="off" spellcheck="false" enterkeyhint="search"
+               aria-label="Rechercher une adresse, un lieu ou des coordonnées">
+        <ul id="resultats" hidden></ul>
+      </div>
+      <div id="chips">
+        <button id="chip-lieux" type="button" class="chip" hidden>Mes lieux</button>
+        <button id="chip-itineraire" type="button" class="chip" hidden>Itinéraire</button>
+        <button id="chip-horsligne" type="button" class="chip">Hors ligne</button>
+        <button id="chip-reglages" type="button" class="chip">Réglages</button>
+      </div>
+    </div>
+    <div id="boutons">
+      <button id="btn-fond" type="button" title="Fond de carte : topographique officielle ou OpenStreetMap" aria-label="Changer de fond de carte">Topo</button>
+      <button id="btn-theme" type="button" title="Basculer clair / sombre" aria-label="Basculer clair / sombre">◐</button>
+    </div>
+  </header>
+
+  <!-- boutons flottants de navigation (remplis par navigation.js) -->
+  <div id="flottants"></div>
+
+  <aside id="fiche" hidden aria-live="polite">
+    <div id="fiche-entete">
+      <div>
+        <h2 id="fiche-titre"></h2>
+        <p id="fiche-sous-titre"></p>
+      </div>
+      <button id="fiche-fermer" type="button" aria-label="Fermer">✕</button>
+    </div>
+    <div id="fiche-corps"></div>
+  </aside>
+
+  <div id="message" class="message" hidden role="status"></div>
+
+  <!-- nouvelle version prête : rien ne bascule sans un clic (miseajour.js) -->
+  <div id="mise-a-jour" role="status" aria-live="polite" hidden>
+    <p>Une nouvelle version de l'application est prête.</p>
+    <button id="b-mettre-a-jour" type="button" class="primaire">Mettre à jour</button>
+    <button id="b-maj-plus-tard" type="button">Plus tard</button>
+  </div>
+
+  <!-- guidage à vol d'oiseau vers un lieu (navigation.js) -->
+  <div id="hud" hidden>
+    <div id="hud-fleche" aria-hidden="true">➤</div>
+    <div id="hud-texte">
+      <div id="hud-ligne1"><span id="hud-distance">…</span> <span id="hud-nom"></span></div>
+      <div id="hud-detail"></div>
+    </div>
+    <button id="hud-stop" type="button" aria-label="Arrêter le guidage">✕</button>
+  </div>
+
+  <script src="lib/maplibre-gl.js"></script>
+  <script src="lib/pmtiles.js"></script>
+  <script src="lib/basemaps.js"></script>
+  <!-- ordre imposé : panneau et stockage n'ont pas de dépendance, carte.js
+       expose Carte, les modules suivants s'y accrochent, pwa.js ferme la marche. -->
+  <script src="panneau.js"></script>
+  <script src="stockage.js"></script>
+  <script src="carte.js"></script>
+  <script src="recherche.js"></script>
+  <script src="navigation.js"></script>
+  <script src="adresses.js"></script>
+  <script src="relief.js"></script>
+  <script src="transports.js"></script>
+  <script src="lieux.js"></script>
+  <script src="itineraires.js"></script>
+  <script src="miseajour.js"></script>
+  <script src="pwa.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+build/cache/
+build/__pycache__/
+data/*.pmtiles
+data/*.mbtiles
+*.part
+build/pmtiles.exe

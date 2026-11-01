@@ -1,0 +1,18 @@
+{
+  "name": "Soest — carte hors ligne",
+  "short_name": "Soest",
+  "description": "Carte de Soest (Westphalie) et de ses environs (±10 km) utilisable sans réseau : carte topographique officielle du Land, OpenStreetMap, relief, adresses, transports, lieux personnels et géolocalisation.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#2e7d4f",
+  "categories": ["navigation", "travel", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

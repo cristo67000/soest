@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.png binary
+*.webp binary
+*.exe binary
+data/fond/* binary
+data/contexte/* binary
+data/relief/* binary
+data/adresses/* binary
+assets/** binary
+data/topo/* binary

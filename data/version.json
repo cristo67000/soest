@@ -1,0 +1,82 @@
+{
+ "paquets": {
+  "fond": {
+   "nom": "Fond de carte Soest et environs",
+   "taille": 10014985,
+   "taille_morceau": 48000000,
+   "morceaux": [
+    "data/fond/fond.000"
+   ],
+   "sha256": "f0af2adeda58c38128549e0dbc90d735f92f4f80191613b3986630b4a80c2595",
+   "zoom_min": 0,
+   "zoom_max": 15,
+   "tuiles": 1060,
+   "osm": "2026-10-31",
+   "source": "Protomaps 20261031"
+  },
+  "contexte": {
+   "nom": "Contexte Europe",
+   "taille": 6210153,
+   "taille_morceau": 48000000,
+   "morceaux": [
+    "data/contexte/contexte.000"
+   ],
+   "sha256": "de98e3c07cffdb200b7ecf3c1c958e30be4a0c17e4b536b30b25e4e9194b6c0f",
+   "zoom_min": 0,
+   "zoom_max": 6,
+   "tuiles": 110,
+   "osm": "2026-10-31",
+   "source": "Protomaps 20261031"
+  },
+  "relief": {
+   "nom": "Relief (altitudes)",
+   "type": "raster-dem",
+   "encodage": "terrarium",
+   "format": "webp",
+   "taille": 2403297,
+   "taille_morceau": 48000000,
+   "morceaux": [
+    "data/relief/relief.000"
+   ],
+   "sha256": "7e2704585574abba24c6ce049cd92add3cc9942f1d5ebb93deb5572936d5e2aa",
+   "zoom_min": 0,
+   "zoom_max": 13,
+   "tuiles": 102,
+   "osm": "2026-11-01",
+   "source": "Terrain Tiles Terrarium (EU-DEM 25 m)"
+  },
+  "topo": {
+   "nom": "Carte topographique officielle (DTK)",
+   "type": "raster",
+   "format": "webp",
+   "taille_tuile": 512,
+   "taille": 58826685,
+   "taille_morceau": 48000000,
+   "morceaux": [
+    "data/topo/topo.000",
+    "data/topo/topo.001"
+   ],
+   "sha256": "2f94cbe58ebed1106effc4c04077c3527128e4faf2db581b197b4b644df7d9a2",
+   "zoom_min": 5,
+   "zoom_max": 15,
+   "tuiles": 1055,
+   "osm": "2026-11-01",
+   "source": "Geobasis NRW, DTK (dl-de/zero-2.0)"
+  },
+  "adresses": {
+   "nom": "Adresses Soest et environs",
+   "type": "index",
+   "taille": 255215,
+   "taille_morceau": 48000000,
+   "morceaux": [
+    "data/adresses/adresses.000"
+   ],
+   "sha256": "61904e814e204bf4d1d3ceeace9d1477705e4e4a0cf7bdd21d2e66eecbe41368",
+   "adresses": 36478,
+   "rues": 2303,
+   "osm": "2026-11-01",
+   "source": "OpenStreetMap"
+  }
+ },
+ "build": "2026-11-01 15:31"
+}
