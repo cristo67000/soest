@@ -22,7 +22,7 @@ et le calcul d'itinéraires (Valhalla/OSRM publics).
 | `adresses` | Index OSM : 36 478 adresses, 2 303 rues, 20 communes | 0,26 Mo gzip | `build/adresses.py` (pyosmium sur l'extrait Geofabrik `arnsberg-regbez`) |
 | — | `data/transports.json` : 662 arrêts (7 gares/haltes, 655 arrêts de bus), 226 relations de lignes (16 train, 210 bus) avec tracés | 1,6 Mo, précaché | `build/transports.py` (pyosmium, deux passes) |
 | — | `data/communes.json` : 148 localités (`place=*`) | 10 Ko, précaché | `build/adresses.py` |
-| — | `data/sites.json` : 458 lieux et services publics (OSM) dont 89 avec descriptif Wikipédia/Wikidata et 76 avec photo Commons (`img/sites/*.webp`, 640 px) | 4,7 Mo, précachés | `build/sites.py` |
+| — | `data/sites.json` : 370 lieux et services publics (OSM) dont 86 avec descriptif Wikipédia/Wikidata et 75 avec photo Commons (`img/sites/*.webp`, 640 px) | 4,6 Mo, précachés | `build/sites.py` |
 
 L'emprise (`build/emprise.py` → `build/emprise.geojson`, `data/emprise.json`) est le carré
 géographique de 20 km de côté centré sur 51,5711 N / 8,1056 E (400 km²) : pas de limite
@@ -98,8 +98,9 @@ n'appartiennent à aucune relation dans OSM et s'affichent sans ligne.
 
 ### Sites et services publics (`sites.js`, `horaires.js`)
 
-`build/sites.py` lit l'extrait Geofabrik (pyosmium) et classe en 34 catégories les objets
-nommés : musées, galeries, châteaux, monuments (hors Stolpersteine et tombes), fortifications,
+`build/sites.py` lit l'extrait Geofabrik (pyosmium) et classe en 33 catégories les objets
+nommés : musées, galeries, châteaux, tours et fortifications (les mémoriaux, plaques et
+Stolpersteine sont écartés : ils encombraient la carte sans être des lieux à visiter),
 lieux de culte, théâtres, cinémas, centres culturels, parcs, réserves, points de vue, offices
 de tourisme, mairies, bibliothèques, hôpitaux, cliniques, pharmacies, police, pompiers, poste,
 tribunal, marché, thermes, piscines, centres sportifs, stades… (nœud ou centre du bâtiment,
@@ -109,9 +110,9 @@ Wikidata, et par la photo Wikidata P18 ou l'image de tête de l'article, **uniqu
 licence libre** (CC0, CC BY, CC BY-SA, domaine public…), réduite à 640 px et créditée
 (auteur, licence, lien Commons). Réponses distantes en cache dans `build/cache/wiki/`.
 
-Côté client, `sites.js` dessine des pictogrammes (disque blanc cerclé de la couleur de la
-catégorie, émoji au centre, rendus sur canvas et enregistrés comme images du style) sous les
-lieux et la position, avec un zoom d'apparition par catégorie ; les genres correspondants du
+Côté client, `sites.js` dessine des pictogrammes **sans étiquette** (disque blanc cerclé de la
+couleur de la catégorie, émoji au centre, rendus sur canvas et enregistrés comme images du
+style) sous les lieux et la position, avec un zoom d'apparition par catégorie ; les genres correspondants du
 fond Protomaps (`museum`, `park`, `library`, `townhall`…) sont retirés de la couche `pois`
 pour ne pas doubler les symboles. La fiche : photo créditée, pastille ouvert / fermé /
 horaires à vérifier, résumé des horaires en français ou texte brut, descriptif et lien vers
@@ -194,3 +195,9 @@ Propres à Soest :
   règle alors jamais (sans effet dans l'interface, où chaque frappe remplace la précédente).
 - Les émojis dessinés sur canvas (`fillText`) donnent des pictogrammes lisibles sans jeu
   d'icônes à maintenir ; `addImage` les prend avec `pixelRatio: 2` pour rester nets.
+- **Lisibilité à fort zoom (2026-11-01)** : plus aucune étiquette en couleur sur la carte —
+  ni pour les lieux, ni pour les arrêts de bus (seules les gares gardent leur nom sous le
+  zoom 15), ni pour les commerces du fond Protomaps (`text-field` vidé, pictogrammes
+  conservés) ; le nom apparaît dans la fiche. Au-delà du zoom 17, la carte topographique
+  (dernière tuile à 1,5 m/pixel) deviendrait floue en s'agrandissant : `raster-opacity`
+  passe de 1 à 0 entre 17 et 18 et le fond vectoriel, net à tout zoom, prend le relais.

@@ -19,11 +19,11 @@ télécharger les cartes.
   d'un point (EU-DEM 25 m).
 - **Transports** : gare de Soest et haltes (RE 11, RB 59, RB 89), 655 arrêts de bus,
   tracés des lignes, lignes desservant chaque arrêt (OpenStreetMap ; pas d'horaires).
-- **Lieux et services publics cliquables** : 458 musées, églises, châteaux, monuments,
+- **Lieux et services publics cliquables** : 370 musées, églises, châteaux, tours,
   parcs, théâtres, mairies, bibliothèques, piscines et thermes, hôpitaux, pharmacies,
   police, poste… Chaque fiche donne l'état d'ouverture et les horaires en français
   (quand OpenStreetMap les connaît), le téléphone, le site web, un descriptif tiré de
-  Wikipédia (89 lieux) et une photo Wikimedia Commons créditée (76 lieux). Les
+  Wikipédia (86 lieux) et une photo Wikimedia Commons créditée (75 lieux). Les
   lieux se cherchent par nom ou par catégorie (« piscine », « pharmacie »).
 - **Adresses hors ligne** : 36 478 adresses OpenStreetMap, numéros de maison sur la carte,
   adresse la plus proche d'un point ; recherche en ligne de secours (Photon).
@@ -46,7 +46,7 @@ Tout reste sur l'appareil : aucun compte, aucune télémétrie.
 | Adresses | 0,3 Mo | 36 478 adresses, 2 303 rues, 148 localités |
 
 Les arrêts et lignes de transport (1,6 Mo) et les lieux publics avec leurs photos
-(4,7 Mo) font partie de l'application elle-même.
+(4,6 Mo) font partie de l'application elle-même.
 
 ## Développement
 

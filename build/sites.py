@@ -67,11 +67,13 @@ def categoriser(t):
     if h in ("castle", "manor", "palace"):
         return "chateau"
     if h in ("monument", "memorial"):
-        # plaques individuelles (Stolpersteine) et tombes : pas des lieux à visiter
-        if t.get("memorial") in ("stolperstein", "grave", "plaque") or t.get("historic:memorial") == "stolperstein":
+        # mémoriaux, plaques, stèles, Stolpersteine : retirés à la demande de
+        # l'utilisateur (2026-11-01), ils encombraient la carte sans être des
+        # lieux à visiter ; une tour-monument reste via man_made=tower ci-dessous
+        if t.get("man_made") != "tower":
             return None
-        return "monument"
-    if h in ("city_gate", "citywalls", "tower", "fort"):
+    if h in ("city_gate", "citywalls", "tower", "fort") or (
+            t.get("man_made") == "tower" and (h or to or t.get("tower:type") in ("observation", "bell_tower", "defensive"))):
         return "fortification"
     if h in ("ruins", "archaeological_site"):
         return "ruines"
@@ -422,7 +424,11 @@ def telecharger_photos(sites):
         s["photo_credit"] = "%s — %s (Wikimedia Commons)" % (info["auteur"], info["licence"])
         s["photo_page"] = info["page"]
         obtenues += 1
-    log("  %d photos embarquées" % obtenues)
+    referencees = {os.path.basename(s["photo"]) for s in sites if s.get("photo")}
+    for f in os.listdir(IMAGES):
+        if f not in referencees:
+            os.remove(os.path.join(IMAGES, f))
+    log("  %d photos embarquées (orphelines supprimées)" % obtenues)
 
 
 # ---------------------------------------------------------------- programme

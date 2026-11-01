@@ -26,7 +26,8 @@ var Carte = (function () {
   // genres que sites.js dessine lui-même avec une fiche (musées, parcs,
   // mairies, bibliothèques…), pour ne pas doubler les pictogrammes.
   var GENRES_POI_EXCLUS = ["fast_food", "supermarket", "convenience", "beauty",
-                           "park", "garden", "zoo", "stadium", "university", "library", "post_office", "townhall", "attraction", "museum", "theatre"];
+                           "park", "garden", "zoo", "stadium", "university", "library", "post_office", "townhall", "attraction", "museum", "theatre",
+                           "bus_stop", "station"];   // arrêts et gares : dessinés par transports.js
 
   var reglages = chargerReglages();
   var archives = {};        // cle de paquet -> pmtiles.PMTiles
@@ -139,7 +140,9 @@ var Carte = (function () {
       if (c.id === "pois" && c.filter && c.filter[1] && c.filter[1][2] && c.filter[1][2][0] === "literal") {
         var clause = c.filter[1];
         clause[2] = ["literal", clause[2][1].filter(function (g) { return GENRES_POI_EXCLUS.indexOf(g) === -1; })];
-        c.layout = Object.assign({}, c.layout, { visibility: reglages.pois ? "visible" : "none" });
+        // pictogrammes seuls : les noms en couleur des commerces nuisaient à la
+        // lisibilité à fort zoom (demande du 2026-11-01)
+        c.layout = Object.assign({}, c.layout, { visibility: reglages.pois ? "visible" : "none", "text-field": "" });
       }
       if (!reglages.nomsFrancais && c.id === "places_country" && c.layout) {
         // en mode « noms locaux », les pays restent en français (France, Allemagne, Suisse)
@@ -150,13 +153,13 @@ var Carte = (function () {
     if (reglages.fond === "topo") {
       /* Carte topographique officielle du Land (paquet « topo », tuiles 512 px)
          posée au-dessus du fond vectoriel : opaque, elle le recouvre dans
-         l'emprise ; ailleurs et sous le zoom 10, OpenStreetMap reste visible. */
-      couches.push({
-        id: "topo", type: "raster", source: "topo", minzoom: 10,
-        paint: themeSombre()
-          ? { "raster-brightness-max": 0.82, "raster-saturation": -0.2, "raster-contrast": 0.05, "raster-fade-duration": 150 }
-          : { "raster-fade-duration": 150 }
-      });
+         l'emprise ; ailleurs et sous le zoom 10, OpenStreetMap reste visible.
+         Au-delà du zoom 17, la dernière tuile (1,5 m/pixel) serait agrandie et
+         floue : la couche s'estompe entre 17 et 18 pour laisser le fond
+         vectoriel, net à tout zoom, prendre le relais (demande du 2026-11-01). */
+      var peintureTopo = { "raster-fade-duration": 150, "raster-opacity": ["interpolate", ["linear"], ["zoom"], 17, 1, 18, 0] };
+      if (themeSombre()) Object.assign(peintureTopo, { "raster-brightness-max": 0.82, "raster-saturation": -0.2, "raster-contrast": 0.05 });
+      couches.push({ id: "topo", type: "raster", source: "topo", minzoom: 10, maxzoom: 18.01, paint: peintureTopo });
     }
 
     couches.push({

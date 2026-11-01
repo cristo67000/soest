@@ -105,12 +105,14 @@ var Transports = (function () {
       paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 3, 14, 5, 17, 7],
                "circle-color": ["get", "couleur"], "circle-stroke-color": sombre ? "#1a1d20" : "#ffffff", "circle-stroke-width": 1.2 }
     }, avant);
+    /* Étiquettes réservées aux gares, et seulement en vue d'ensemble (zoom < 15) :
+       les noms d'arrêts de bus en couleur encombraient la carte à fort zoom
+       (demande du 2026-11-01) ; ils restent lisibles dans la fiche. */
     m.addLayer({
-      id: "transports-arrets-nom", type: "symbol", source: "transports-arrets", minzoom: 11,
-      filter: ["any", ["==", ["get", "type"], "train"], [">=", ["zoom"], 15]],
+      id: "transports-arrets-nom", type: "symbol", source: "transports-arrets", minzoom: 11, maxzoom: 15,
+      filter: ["==", ["get", "type"], "train"],
       layout: { visibility: "none", "text-field": ["get", "nom"], "text-font": ["Noto Sans Regular"],
-                "text-size": ["case", ["==", ["get", "type"], "train"], 12.5, 11], "text-offset": [0, 0.9], "text-anchor": "top",
-                "text-max-width": 8, "text-optional": true },
+                "text-size": 12.5, "text-offset": [0, 0.9], "text-anchor": "top", "text-max-width": 8, "text-optional": true },
       paint: { "text-color": ["get", "couleur"], "text-halo-color": sombre ? "#1a1d20" : "#ffffff", "text-halo-width": 1.4 }
     }, avant);
     charger().then(function (d) {

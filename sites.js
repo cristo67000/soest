@@ -10,8 +10,8 @@ var Sites = (function () {
   // clé : [libellé, pictogramme, couleur, zoom d'apparition]
   var CATEGORIES = {
     musee: ["Musée", "🏛", "#7c3aed", 12], galerie: ["Galerie d'art", "🖼", "#7c3aed", 14],
-    chateau: ["Château", "🏰", "#b45309", 12], monument: ["Monument, mémorial", "🗿", "#78716c", 14],
-    fortification: ["Fortification", "🧱", "#78716c", 13], ruines: ["Ruines, site archéologique", "🏚", "#78716c", 14],
+    chateau: ["Château", "🏰", "#b45309", 12],
+    fortification: ["Tour, porte, fortification", "🧱", "#78716c", 13], ruines: ["Ruines, site archéologique", "🏚", "#78716c", 14],
     culte: ["Lieu de culte", "⛪", "#4b5563", 13], theatre: ["Théâtre", "🎭", "#db2777", 12],
     cinema: ["Cinéma", "🎬", "#db2777", 13], centre_culturel: ["Centre culturel", "🎨", "#db2777", 14],
     parc: ["Parc, jardin", "🌳", "#15803d", 13], reserve_naturelle: ["Réserve naturelle", "🦋", "#15803d", 12],
@@ -111,17 +111,17 @@ var Sites = (function () {
     var sombre = Carte.themeSombre();
     var avant = m.getLayer("reperes-modules") ? "reperes-modules" : undefined;
     m.addSource("sites", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    /* Pictogrammes seuls, sans étiquette : les noms en couleur rendaient la
+       carte illisible à fort zoom (demande du 2026-11-01) ; le nom s'affiche
+       dans la fiche au toucher. */
     m.addLayer({
       id: "sites-icones", type: "symbol", source: "sites", minzoom: 11,
       filter: [">=", ["zoom"], ["get", "zmin"]],
       layout: {
         visibility: "none",
         "icon-image": ["get", "icone"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.6, 14, 0.85, 17, 1],
-        "icon-padding": 1, "icon-allow-overlap": ["step", ["zoom"], false, 15, true],
-        "text-field": ["step", ["zoom"], "", 15, ["get", "nom"]], "text-font": ["Noto Sans Medium"], "text-size": 11.5,
-        "text-offset": [0, 1.25], "text-anchor": "top", "text-max-width": 9, "text-optional": true
-      },
-      paint: { "text-color": ["get", "couleur"], "text-halo-color": sombre ? "#1a1d20" : "#ffffff", "text-halo-width": 1.4 }
+        "icon-padding": 2, "icon-allow-overlap": ["step", ["zoom"], false, 16, true]
+      }
     }, avant);
     charger().then(function (d) {
       var src = m.getSource("sites");

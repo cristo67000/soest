@@ -13,7 +13,7 @@ const PREFIXE = 'soest-app-';
    réinstalle un service worker que si son script a changé d'un octet. Sans
    cette ligne, une nouvelle version (nouveau precache.json) resterait
    invisible des appareils déjà installés. */
-const BUILD = '2026-11-01-1637';
+const BUILD = '2026-11-01-1702';
 let APP_CACHE = PREFIXE + 'initial';
 const PAQUETS = /\/data\/(fond|contexte|topo|relief|adresses)\//;
 
