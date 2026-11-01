@@ -9,6 +9,11 @@
  * lisent par plages d'octets, ce que le Cache Storage ne sait pas servir.
  */
 const PREFIXE = 'soest-app-';
+/* Identifiant de build, réécrit par build/manifeste.py : le navigateur ne
+   réinstalle un service worker que si son script a changé d'un octet. Sans
+   cette ligne, une nouvelle version (nouveau precache.json) resterait
+   invisible des appareils déjà installés. */
+const BUILD = '2026-11-01-1637';
 let APP_CACHE = PREFIXE + 'initial';
 const PAQUETS = /\/data\/(fond|contexte|topo|relief|adresses)\//;
 
@@ -16,7 +21,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const reponse = await fetch('data/precache.json', { cache: 'reload' });
     const { build, fichiers } = await reponse.json();
-    APP_CACHE = PREFIXE + build;
+    APP_CACHE = PREFIXE + (build || BUILD);
     const cache = await caches.open(APP_CACHE);
     // `cache: 'reload'` contourne le cache HTTP : sinon addAll() peut figer une
     // version périmée (GitHub Pages sert max-age=600).

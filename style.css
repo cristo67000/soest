@@ -461,3 +461,21 @@ ul.lignes li:last-child { border-bottom: none; }
 ul.arrets-ligne { list-style: none; margin: 4px 0; padding: 0; }
 ul.arrets-ligne li button.lien { width: 100%; text-align: left; padding: 7px 8px; border: none; border-radius: 8px; background: transparent; color: var(--texte); font-size: 14px; }
 ul.arrets-ligne li button.lien:hover { background: var(--survol); }
+
+/* ---- sites et services publics (fiches) ---- */
+.photo-site { margin: 0 0 10px; }
+.photo-site img { display: block; width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; background: var(--survol); }
+.photo-site figcaption { margin-top: 4px; font-size: 11px; color: var(--texte-secondaire); line-height: 1.3; }
+.photo-site figcaption a { color: inherit; text-decoration: none; }
+.etiquettes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 8px; }
+.pastille { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; }
+.pastille.ouvert { background: #16a34a; }
+.pastille.ferme { background: #dc2626; }
+.pastille.inconnu { background: #6b7280; }
+.detail-etat { font-size: 13px; color: var(--texte-secondaire); }
+.etiquette { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--bordure); color: var(--texte-secondaire); }
+ul.horaires-resume { margin: 4px 0 10px; padding-left: 18px; font-size: 14px; line-height: 1.45; }
+.horaires-bruts { margin: 4px 0 10px; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; color: var(--texte-secondaire); word-break: break-word; }
+.description-site { margin: 8px 0; font-size: 14px; line-height: 1.5; }
+ul.contacts { list-style: none; margin: 8px 0; padding: 0; font-size: 14px; line-height: 1.7; }
+ul.contacts a, .description-site a, #fiche-corps .note a { color: var(--accent); }

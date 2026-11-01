@@ -11,6 +11,7 @@ var Carte = (function () {
     theme: matchMedia("(prefers-color-scheme: dark)").matches ? "sombre" : "clair",
     fond: "topo",          // "topo" : carte topographique officielle du Land (paquet topo) ; "osm" : fond vectoriel seul
     transports: true,      // arrêts et lignes de bus et de train (transports.js)
+    sites: true,           // musées, églises, parcs, mairies, piscines, hôpitaux… cliquables (sites.js)
     nomsFrancais: false,   // sinon noms locaux (Köln plutôt que Cologne) ; sans effet autour de Soest
     pois: true,            // commerces et services du fond de carte
     troisD: false,
@@ -21,8 +22,11 @@ var Carte = (function () {
     enLigne: true          // recherche en ligne de secours (Photon)
   };
   // Genres de commerces retirés du fond : bruit visuel (même choix que
-  // strasbourg-eurometropole), les restaurants, cafés, bars… restent.
-  var GENRES_POI_EXCLUS = ["fast_food", "supermarket", "convenience", "beauty"];
+  // strasbourg-eurometropole), les restaurants, cafés, bars… restent ; et les
+  // genres que sites.js dessine lui-même avec une fiche (musées, parcs,
+  // mairies, bibliothèques…), pour ne pas doubler les pictogrammes.
+  var GENRES_POI_EXCLUS = ["fast_food", "supermarket", "convenience", "beauty",
+                           "park", "garden", "zoo", "stadium", "university", "library", "post_office", "townhall", "attraction", "museum", "theatre"];
 
   var reglages = chargerReglages();
   var archives = {};        // cle de paquet -> pmtiles.PMTiles
@@ -67,6 +71,10 @@ var Carte = (function () {
     }
     if (nom === "transports") {
       if (window.Transports) Transports.appliquerReglages();
+      return;
+    }
+    if (nom === "sites") {
+      if (window.Sites) Sites.appliquerReglages();
       return;
     }
     if (nom === "fond") majBoutonFond();
@@ -322,6 +330,10 @@ var Carte = (function () {
       "Pour le dézoom (Cologne, Munich…) : autour de Soest, les noms sont les mêmes dans les deux cas."));
     corps.appendChild(inter("Commerces et services", reglages.pois, function (v) { definirReglage("pois", v); },
       "Restaurants, cafés, boutiques, pharmacies… du fond OpenStreetMap."));
+    if (window.Sites) {
+      corps.appendChild(inter("Lieux et services publics", reglages.sites, function (v) { definirReglage("sites", v); },
+        "Musées, églises, châteaux, parcs, mairies, bibliothèques, piscines, hôpitaux, pharmacies… cliquables : descriptif, horaires, téléphone, site, photo."));
+    }
     if (window.Transports) {
       corps.appendChild(inter("Arrêts et lignes de transport", reglages.transports, function (v) { definirReglage("transports", v); },
         "Gare, haltes, arrêts de bus et tracés des lignes (OpenStreetMap), avec les lignes desservant chaque arrêt."));

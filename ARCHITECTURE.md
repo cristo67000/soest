@@ -22,6 +22,7 @@ et le calcul d'itinéraires (Valhalla/OSRM publics).
 | `adresses` | Index OSM : 36 478 adresses, 2 303 rues, 20 communes | 0,26 Mo gzip | `build/adresses.py` (pyosmium sur l'extrait Geofabrik `arnsberg-regbez`) |
 | — | `data/transports.json` : 662 arrêts (7 gares/haltes, 655 arrêts de bus), 226 relations de lignes (16 train, 210 bus) avec tracés | 1,6 Mo, précaché | `build/transports.py` (pyosmium, deux passes) |
 | — | `data/communes.json` : 148 localités (`place=*`) | 10 Ko, précaché | `build/adresses.py` |
+| — | `data/sites.json` : 458 lieux et services publics (OSM) dont 89 avec descriptif Wikipédia/Wikidata et 76 avec photo Commons (`img/sites/*.webp`, 640 px) | 4,7 Mo, précachés | `build/sites.py` |
 
 L'emprise (`build/emprise.py` → `build/emprise.geojson`, `data/emprise.json`) est le carré
 géographique de 20 km de côté centré sur 51,5711 N / 8,1056 E (400 km²) : pas de limite
@@ -95,6 +96,33 @@ une ligne cliquée liste ses arrêts dans l'emprise. Fournisseur de recherche «
 de 80 m (bus) ou 400 m (gares, sinon tracé à moins de 150 m) — 124 arrêts de bus sur 655
 n'appartiennent à aucune relation dans OSM et s'affichent sans ligne.
 
+### Sites et services publics (`sites.js`, `horaires.js`)
+
+`build/sites.py` lit l'extrait Geofabrik (pyosmium) et classe en 34 catégories les objets
+nommés : musées, galeries, châteaux, monuments (hors Stolpersteine et tombes), fortifications,
+lieux de culte, théâtres, cinémas, centres culturels, parcs, réserves, points de vue, offices
+de tourisme, mairies, bibliothèques, hôpitaux, cliniques, pharmacies, police, pompiers, poste,
+tribunal, marché, thermes, piscines, centres sportifs, stades… (nœud ou centre du bâtiment,
+doublons nœud + bâtiment fusionnés à moins de 200 m). Il complète par Wikipédia (premier
+paragraphe en français, sinon en allemand, jamais traduit), à défaut la description courte
+Wikidata, et par la photo Wikidata P18 ou l'image de tête de l'article, **uniquement sous
+licence libre** (CC0, CC BY, CC BY-SA, domaine public…), réduite à 640 px et créditée
+(auteur, licence, lien Commons). Réponses distantes en cache dans `build/cache/wiki/`.
+
+Côté client, `sites.js` dessine des pictogrammes (disque blanc cerclé de la couleur de la
+catégorie, émoji au centre, rendus sur canvas et enregistrés comme images du style) sous les
+lieux et la position, avec un zoom d'apparition par catégorie ; les genres correspondants du
+fond Protomaps (`museum`, `park`, `library`, `townhall`…) sont retirés de la couche `pois`
+pour ne pas doubler les symboles. La fiche : photo créditée, pastille ouvert / fermé /
+horaires à vérifier, résumé des horaires en français ou texte brut, descriptif et lien vers
+l'article, téléphone (`tel:`), site, courriel, adresse (ou adresse la plus proche via
+l'index hors ligne), « ajouter à mes lieux », « y aller ». Fournisseur de recherche par nom
+ou par catégorie (priorité 17). `horaires.js` reprend le moteur `opening_hours` de
+strasbourg-eurometropole (règles mois/jours/plages, PH, 24/7, plages passant minuit,
+exceptions datées périmées ignorées) avec les jours fériés de NRW (Fronleichnam,
+Allerheiligen…) ; hors du sous-ensemble reconnu, on affiche le texte brut plutôt qu'un
+état faux.
+
 ### Adresses (`adresses.js`)
 Paquet binaire gzippé (`SOADR1`, en-tête JSON + 4 tableaux alignés : numéro u16, suffixe u16,
 lon/lat i32 en millionièmes), décompressé en mémoire au premier usage (paquet installé
@@ -158,3 +186,11 @@ Propres à Soest :
   chemins membres avant la seconde.
 - `python -c "…"` avec guillemets imbriqués et heredocs longs dans le shell Git Bash de
   Windows : préférer un fichier de script (voir la mémoire « pièges Write / heredoc »).
+- Les `historic=memorial` d'OSM sont aux trois quarts des **Stolpersteine** (plaques
+  nominatives au sol) : les écarter (`memorial=stolperstein|grave|plaque`), sinon la couche
+  « monuments » n'est qu'une liste de noms de personnes.
+- `Recherche.chercher()` ne doit pas être appelée en parallèle depuis du code : le
+  fournisseur Photon annule la temporisation de l'appel précédent, dont la promesse ne se
+  règle alors jamais (sans effet dans l'interface, où chaque frappe remplace la précédente).
+- Les émojis dessinés sur canvas (`fillText`) donnent des pictogrammes lisibles sans jeu
+  d'icônes à maintenir ; `addImage` les prend avec `pixelRatio: 2` pour rester nets.

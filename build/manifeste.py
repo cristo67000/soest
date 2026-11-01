@@ -13,13 +13,14 @@ Usage : python build/manifeste.py
 import datetime as dt
 import json
 import pathlib
+import re
 
 RACINE = pathlib.Path(__file__).resolve().parent.parent
-DOSSIERS = ["lib", "assets/glyphs", "assets/sprites", "icons"]
+DOSSIERS = ["lib", "assets/glyphs", "assets/sprites", "icons", "img/sites"]
 RACINE_FICHIERS = ["index.html", "style.css", "manifest.webmanifest",
-                   "panneau.js", "stockage.js", "telechargeur.js", "carte.js", "recherche.js", "transports.js",
+                   "panneau.js", "stockage.js", "telechargeur.js", "carte.js", "recherche.js", "transports.js", "horaires.js", "sites.js",
                    "lieux.js", "adresses.js", "navigation.js", "relief.js", "courbes-worker.js", "itineraires.js", "miseajour.js", "pwa.js"]
-DATA = ["data/emprise.json", "data/version.json", "data/communes.json", "data/transports.json"]
+DATA = ["data/emprise.json", "data/version.json", "data/communes.json", "data/transports.json", "data/sites.json"]
 
 
 def lister():
@@ -45,10 +46,19 @@ def main():
     version["build"] = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
     chemin_version.write_text(json.dumps(version, ensure_ascii=False, indent=1), encoding="utf-8")
     chemins = lister()
+    # sw.js doit changer à chaque build : le navigateur ne réinstalle un service
+    # worker (et donc ne relit precache.json) que si son script a changé.
+    build_id = version["build"].replace(" ", "-").replace(":", "")
+    chemin_sw = RACINE / "sw.js"
+    sw = chemin_sw.read_text(encoding="utf-8")
+    sw_nouveau = re.sub(r"const BUILD = '[^']*';", "const BUILD = '%s';" % build_id, sw)
+    if sw_nouveau == sw and "const BUILD" not in sw:
+        raise SystemExit("sw.js sans ligne const BUILD = '…' : impossible de versionner le service worker")
+    chemin_sw.write_text(sw_nouveau, encoding="utf-8")
     (RACINE / "data" / "precache.json").write_text(
         json.dumps({"build": version["build"].replace(" ", "-").replace(":", ""), "fichiers": chemins},
                    ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(f"{len(chemins)} fichiers listés dans data/precache.json (build {version['build']})")
+    print(f"{len(chemins)} fichiers listés dans data/precache.json, sw.js BUILD = {build_id}")
 
 
 if __name__ == "__main__":

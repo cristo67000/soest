@@ -19,6 +19,12 @@ télécharger les cartes.
   d'un point (EU-DEM 25 m).
 - **Transports** : gare de Soest et haltes (RE 11, RB 59, RB 89), 655 arrêts de bus,
   tracés des lignes, lignes desservant chaque arrêt (OpenStreetMap ; pas d'horaires).
+- **Lieux et services publics cliquables** : 458 musées, églises, châteaux, monuments,
+  parcs, théâtres, mairies, bibliothèques, piscines et thermes, hôpitaux, pharmacies,
+  police, poste… Chaque fiche donne l'état d'ouverture et les horaires en français
+  (quand OpenStreetMap les connaît), le téléphone, le site web, un descriptif tiré de
+  Wikipédia (89 lieux) et une photo Wikimedia Commons créditée (76 lieux). Les
+  lieux se cherchent par nom ou par catégorie (« piscine », « pharmacie »).
 - **Adresses hors ligne** : 36 478 adresses OpenStreetMap, numéros de maison sur la carte,
   adresse la plus proche d'un point ; recherche en ligne de secours (Photon).
 - **Mes lieux** : adresses, lieux et coordonnées GPS (décimal, DMS, lien geo:) ajoutés par
@@ -39,7 +45,8 @@ Tout reste sur l'appareil : aucun compte, aucune télémétrie.
 | Relief | 2,4 Mo | altitudes Terrarium (EU-DEM 25 m) zoom 0 → 13 |
 | Adresses | 0,3 Mo | 36 478 adresses, 2 303 rues, 148 localités |
 
-Les arrêts et lignes de transport (1,6 Mo) font partie de l'application elle-même.
+Les arrêts et lignes de transport (1,6 Mo) et les lieux publics avec leurs photos
+(4,7 Mo) font partie de l'application elle-même.
 
 ## Développement
 
@@ -61,6 +68,7 @@ python build/relief.py       # tuiles d'altitude
 python build/topo.py         # carte topographique officielle (WMS Geobasis NRW)
 python build/adresses.py     # index d'adresses
 python build/transports.py   # arrêts et lignes
+python build/sites.py        # lieux et services publics (+ Wikipédia, photos Commons)
 python build/icones.py && python build/manifeste.py
 ```
 
@@ -75,6 +83,9 @@ choix techniques et les pièges rencontrés.
 - Fond de carte, adresses, transports : © les contributeurs
   [OpenStreetMap](https://www.openstreetmap.org/copyright) (ODbL) ; tuiles
   [Protomaps](https://protomaps.com), extrait [Geofabrik](https://download.geofabrik.de).
+- Descriptifs des lieux : [Wikipédia](https://fr.wikipedia.org) et Wikidata (CC BY-SA 4.0),
+  article lié depuis chaque fiche ; photos : Wikimedia Commons, licence et auteur indiqués
+  sous chaque image (seules les images sous licence libre sont embarquées).
 - Relief : Terrain Tiles (Mapzen/AWS), EU-DEM © Union européenne, Copernicus.
 - Itinéraires : serveurs publics [Valhalla](https://valhalla.openstreetmap.de) (FOSSGIS) et
   [OSRM](https://project-osrm.org). Recherche en ligne : [Photon](https://photon.komoot.io).
